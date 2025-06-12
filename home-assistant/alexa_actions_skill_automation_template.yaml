@@ -148,6 +148,10 @@ blueprint:
       default: 
       selector:
         action: 
+    
+    AlexaConfirmationText:
+      name: Alexa confirmation Message
+      description: Alexa will respond with a personalized message.
 
   
 variables:
@@ -210,6 +214,7 @@ action:
               event_id: !input 'AlexaEeventId'
               alexa_device: !input 'AlexaNotifier'
               suppress_confirmation: !input 'AlexaOkay'
+              confirmation_text: !input 'AlexaConfirmationText'
       - conditions:
           - condition: trigger
             id: AlexaYesID

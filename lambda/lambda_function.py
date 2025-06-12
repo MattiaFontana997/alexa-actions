@@ -278,6 +278,7 @@ class HomeAssistant(Borg):
             event_id=response.get("event"),
             suppress_confirmation=_string_to_bool(response.get("suppress_confirmation")),
             text=response.get("text"),
+            confirmation_text=response.get("confirmation_text")
         )
         logger.debug(self.ha_state)
 
@@ -300,10 +301,11 @@ class HomeAssistant(Borg):
         response = self._post("api", "events", "alexa_actionable_notification", body=body)
         if not response:
             return self.ha_state.text
-
+        self.get_ha_state()  # 🧠 QUESTO È IL PEZZO CHIAVE
         if not self.ha_state.suppress_confirmation:
+            confirmation = self.ha_state.confirmation_text or self.language_strings[prompts.OKAY]
             self.clear_state()
-            return self.language_strings[prompts.OKAY]
+            return confirmation
 
         self.clear_state()
         return ""
@@ -551,22 +553,6 @@ class CancelOrStopIntentHandler(AbstractRequestHandler):
 
         return _handle_response(handler_input, speak_output)
 
-class FallbackHandler(AbstractRequestHandler):
-    """Handler for Fallback."""
-
-    def can_handle(self, handler_input):
-        """Check for Select Intent."""
-        return is_intent_name("AMAZON.FallbackIntent")(handler_input)
-
-    def handle(self, handler_input):
-        """Handle Fallback."""
-        logger.info("Fallback Handler triggered")
-        ha_obj = HomeAssistant(handler_input)
-        #reason = handler_input.request_envelope.request.reason
-        #if reason == SessionEndedReason.EXCEEDED_MAX_REPROMPTS or reason == SessionEndedReason.USER_INITIATED:
-        ha_obj.post_ha_event(RESPONSE_NONE, RESPONSE_NONE)
-
-        return handler_input.response_builder.response
 
 class SessionEndedRequestHandler(AbstractRequestHandler):
     """Handler for Session End."""
@@ -671,7 +657,6 @@ sb.add_request_handler(NumericIntentHandler())
 sb.add_request_handler(DurationIntentHandler())
 sb.add_request_handler(DateTimeIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
-sb.add_request_handler(FallbackHandler())
 sb.add_request_handler(SessionEndedRequestHandler())
 sb.add_request_handler(IntentReflectorHandler())
 

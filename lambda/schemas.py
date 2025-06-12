@@ -25,3 +25,4 @@ class HaState(BaseModel):
     event_id: Optional[str]
     suppress_confirmation: bool = Field(default=False)
     text: str
+    confirmation_text: Optional[str] = None
